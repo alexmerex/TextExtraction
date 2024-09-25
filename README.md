@@ -1,5 +1,3 @@
-# README.txt
-
 ## Overview
 This script reads text data from a file, processes it using Java-based Natural Language Processing (NLP) tools integrated into Python, and extracts relational triples from the input sentences. The extracted triples are then saved to a separate file. The script utilizes the Stanford CoreNLP library for dependency parsing and MinIE for information extraction.
 
