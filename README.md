@@ -1,68 +1,293 @@
-## Overview
-This script reads text data from a file, processes it using Java-based Natural Language Processing (NLP) tools integrated into Python, and extracts relational triples from the input sentences. The extracted triples are then saved to a separate file. The script utilizes the Stanford CoreNLP library for dependency parsing and MinIE for information extraction.
+<div align="center">
 
-## Prerequisites
-1. **Java Development Kit (JDK)**: Ensure that the JDK is installed and properly set up in your system environment.
-2. **Pyjnius**: A Python library for accessing Java classes.
-3. **Stanford CoreNLP**: This library is required for parsing text.
-4. **MinIE**: The information extraction tool used in this script.
-5. **Classpath Configuration**: The `CLASSPATH` environment variable should point to the location of the MinIE JAR file.
+# 🔎 Text Extraction
 
-## Setup
+### Turn English and Vietnamese text into structured relational triples
 
-### 1. Install Pyjnius
-You can install Pyjnius using pip:
-```bash
-pip install pyjnius
-```
+Hybrid **Python + Java NLP pipeline** powered by Stanford CoreNLP, MinIE, Pyjnius,
+and automatic Vietnamese translation.
 
-### 2. Java Environment Setup
-Make sure your `JAVA_HOME` environment variable is set correctly. If it’s not set, uncomment the following line in the script and adjust the path according to your system:
-```python
-# os.environ['JAVA_HOME'] = '/path/to/your/java/home'
-```
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Java 8+](https://img.shields.io/badge/Java-8%2B-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![CoreNLP 4.5.10](https://img.shields.io/badge/CoreNLP-4.5.10-8C1515)](https://stanfordnlp.github.io/CoreNLP/)
+[![Tests](https://img.shields.io/badge/tests-18%20passing-2EA44F?logo=pytest&logoColor=white)](#-quality--testing)
+[![CLI + GUI](https://img.shields.io/badge/interfaces-CLI%20%2B%20GUI-7C3AED)](#-usage)
 
-### 3. Set CLASSPATH
-The `CLASSPATH` environment variable should be set to the location of the `minie-0.0.1-SNAPSHOT.jar` file. This is already configured in the script as:
-```python
-os.environ['CLASSPATH'] = "../../../../../target/minie-0.0.1-SNAPSHOT.jar"
-```
-Ensure the path is correct relative to your script's location.
+[Features](#-features) · [Architecture](#-architecture) · [Quick start](#-quick-start) · [Configuration](#%EF%B8%8F-configuration) · [Development](#-development)
 
-### 4. Input File
-The input text file should be located at `../../../../../../content_afterChange.txt` relative to the script. Ensure the file exists and contains the sentences you want to process.
-
-## Usage
-1. **Run the Script**: Execute the script using Python:
-    ```bash
-    python script_name.py
-    ```
-   The script will read sentences from `content_afterChange.txt`, process each sentence to extract triples, and save the results in `triples.txt`.
-
-2. **Output File**: The extracted triples are saved to `../../../../../../triples.txt`. Each line in this file corresponds to a relational triple extracted from the input sentences.
-
-## Error Handling
-The script includes basic error handling. If an error occurs while processing a sentence, the error message will be printed to the console along with the problematic sentence. The script will then continue processing the next sentence.
-
-## Customization
-- **SAFE Mode**: The extraction is performed in SAFE mode (`mode = 2`). You can adjust the mode according to your needs.
-- **File Paths**: Update the file paths for both input and output files if necessary.
-- **Java Classes**: If you want to use other Java classes or customize the extraction process, modify the relevant parts of the script.
-
-## Troubleshooting
-- **Classpath Issues**: Ensure the `CLASSPATH` is correctly set to include all necessary JAR files.
-- **Java Environment**: Verify that the `JAVA_HOME` environment variable is set and points to the correct JDK path.
-
-## Additional Information
-For more information on MinIE and Stanford CoreNLP, refer to their respective documentation:
-
-- [Stanford CoreNLP Documentation](https://stanfordnlp.github.io/CoreNLP/)
-- [MinIE GitHub Repository](https://github.com/your-minie-repository)
-
-## License
-Include license information if applicable.
-
-## Acknowledgments
-This script uses various open-source libraries. Thanks to their developers for making them available.
+</div>
 
 ---
+
+## ✨ What is Text Extraction?
+
+Text Extraction converts unstructured prose into **subject–relation–object triples**
+that can feed knowledge graphs, search systems, semantic analysis, or downstream AI
+applications.
+
+```text
+Input       Barack Obama was elected president. He served two terms.
+Coreference Barack Obama was elected president. Barack Obama served two terms.
+Triple      (Barack Obama; served; two terms)
+```
+
+Vietnamese input is translated to English before NLP processing, then the extracted
+triples are translated back to Vietnamese automatically.
+
+## 🚀 Features
+
+| Capability | What it provides |
+| --- | --- |
+| 🇻🇳 Vietnamese support | Detects Vietnamese diacritics, translates input to English, and translates results back |
+| 🔗 Coreference resolution | Replaces pronouns with representative entities using Stanford CoreNLP |
+| 🧠 Open information extraction | Produces relational triples through MinIE and Pyjnius |
+| ⌨️ Command-line interface | Scriptable pipeline suitable for automation and batch workflows |
+| 🖥️ Desktop interface | Responsive Tkinter GUI with progress logs and artifact settings |
+| ⚙️ Flexible configuration | Supports environment variables, workspace settings, and artifact download URLs |
+| 🛡️ Defensive runtime | Validates inputs and JAR files, uses atomic settings writes, timeouts, and clear errors |
+| ✅ Tested architecture | Python unit tests plus Java UTF-8 and real CoreNLP integration tests |
+
+## 🧭 Architecture
+
+```mermaid
+flowchart LR
+    A[UTF-8 text file] --> B{Source language}
+    B -->|Vietnamese| C[Translate to English]
+    B -->|English| D[Prepared content]
+    C --> D
+    D --> E[Stanford CoreNLP<br/>coreference resolution]
+    E --> F[MinIE extraction<br/>through Pyjnius]
+    F --> G{Original language}
+    G -->|Vietnamese| H[Translate triples<br/>back to Vietnamese]
+    G -->|English| I[Final triples]
+    H --> I
+
+    classDef python fill:#3776ab,color:#fff,stroke:#224f77;
+    classDef java fill:#ed8b00,color:#fff,stroke:#a85f00;
+    class C,D,F,G,H python;
+    class E java;
+```
+
+The Java coreference process and the Python/MinIE JVM are isolated from each other.
+This prevents classpath collisions and keeps artifact configuration predictable.
+
+## ⚡ Quick start
+
+### 1. Install the Python package
+
+```bash
+git clone https://github.com/alexmerex/TextExtraction.git
+cd TextExtraction
+
+python -m venv .venv
+```
+
+Activate the environment:
+
+```bash
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+
+# macOS / Linux
+source .venv/bin/activate
+```
+
+Install Text Extraction:
+
+```bash
+python -m pip install -e .
+```
+
+### 2. Build the Java coreference CLI
+
+```bash
+cd java
+
+# Windows
+gradlew.bat shadowJar
+
+# macOS / Linux
+./gradlew shadowJar
+
+cd ..
+```
+
+The executable fat JAR is created at:
+
+```text
+java/build/libs/text-extraction-java.jar
+```
+
+### 3. Configure MinIE
+
+> [!IMPORTANT]
+> MinIE is not bundled with this repository. Provide a **fat JAR containing MinIE
+> and all of its runtime dependencies** before running extraction.
+
+The fastest option is an environment variable:
+
+```bash
+# Windows PowerShell
+$env:TEXT_EXTRACTION_MINIE_JAR = "C:\tools\minie-fat.jar"
+
+# macOS / Linux
+export TEXT_EXTRACTION_MINIE_JAR=/opt/minie/minie-fat.jar
+```
+
+### 4. Extract triples
+
+```bash
+text-extraction input.txt --workspace output
+```
+
+Results are written to `output/triples.txt`.
+
+## 🖥️ Usage
+
+### Command line
+
+```text
+usage: text-extraction [-h] [--workspace WORKSPACE]
+                       [--source-language {auto,en,vi}] [--skip-coref]
+                       input_file
+```
+
+Examples:
+
+```bash
+# Automatic Vietnamese/English detection
+text-extraction story.txt --workspace results
+
+# Force Vietnamese for text without diacritics
+text-extraction story.txt --source-language vi --workspace results
+
+# Extract without the Java coreference stage
+text-extraction story.txt --skip-coref --workspace results
+```
+
+### Desktop GUI
+
+```bash
+text-extraction-gui
+```
+
+The GUI lets you select an input file, configure Java and MinIE artifacts, monitor
+pipeline progress, and inspect the extracted triples. Processing runs outside the UI
+thread, so the window stays responsive during model loading and extraction.
+
+## ⚙️ Configuration
+
+Configuration is read from `<workspace>/settings.json`:
+
+```json
+{
+  "java_path": null,
+  "java_cli_jar": null,
+  "minie_jar_path": "C:/tools/minie-fat.jar",
+  "minie_url": null
+}
+```
+
+| Setting | Description |
+| --- | --- |
+| `java_path` | Optional path to the Java executable; defaults to `java` on `PATH` |
+| `java_cli_jar` | Optional CoreNLP CLI JAR override; defaults to the repository build output |
+| `minie_jar_path` | Absolute path or workspace-relative path to the MinIE fat JAR |
+| `minie_url` | Optional HTTP(S) URL used to download MinIE into the workspace artifact cache |
+
+MinIE resolution order:
+
+1. `TEXT_EXTRACTION_MINIE_JAR`
+2. `minie_jar_path` in `settings.json`
+3. Cached/downloaded artifact from `minie_url`
+
+Downloaded artifacts are checked for a valid JAR/ZIP signature before use.
+
+## 📦 Workspace outputs
+
+| File | Purpose |
+| --- | --- |
+| `content.txt` | English text prepared for NLP |
+| `content_afterChange.txt` | Text after Java coreference resolution |
+| `triples.txt` | Final extracted triples |
+| `language_info.txt` | Detected or explicitly selected input language |
+| `settings.json` | Optional workspace-specific configuration |
+| `.text-extraction/artifacts/` | Downloaded runtime artifacts |
+
+## 🗂️ Project structure
+
+```text
+TextExtraction/
+├── java/                         # Gradle Java application
+│   ├── gradle/wrapper/           # Reproducible Gradle toolchain
+│   └── src/
+│       ├── main/java/            # CoreNLP CLI and coreference logic
+│       └── test/java/            # Java unit/integration tests
+├── src/text_extraction/
+│   ├── ui/                       # Responsive Tkinter desktop UI
+│   ├── cli.py                    # Command-line entry point
+│   ├── config.py                 # Resolved pipeline configuration
+│   ├── downloader.py             # Validated MinIE artifact download
+│   ├── minie.py                  # Lazy Pyjnius/MinIE integration
+│   ├── pipeline.py               # Pipeline orchestration
+│   ├── settings.py               # Atomic JSON settings storage
+│   └── translate.py              # Language detection and translation
+├── tests/                        # Python test suite
+├── pyproject.toml                # Package and tooling metadata
+└── README.md
+```
+
+## 🧪 Quality & testing
+
+Install development dependencies and run the full verification suite:
+
+```bash
+python -m pip install -e ".[dev]"
+python -m ruff format --check src tests
+python -m ruff check .
+python -m pytest
+
+cd java
+./gradlew clean test shadowJar
+```
+
+Current verified baseline:
+
+- **16 Python tests** passing
+- **2 Java tests** passing, including real CoreNLP pronoun resolution
+- Python wheel builds successfully
+- Java fat JAR builds with a valid executable manifest
+
+## 🩺 Troubleshooting
+
+| Problem | Suggested fix |
+| --- | --- |
+| `MinIE jar not configured` | Set `TEXT_EXTRACTION_MINIE_JAR` or add `minie_jar_path` to workspace settings |
+| JAR does not contain MinIE | Use a fat JAR that includes MinIE and every runtime dependency |
+| `Java executable not found` | Install a JDK, update `PATH`, or configure `java_path` |
+| Java CLI JAR is missing | Run `gradlew.bat shadowJar` or `./gradlew shadowJar` inside `java/` |
+| Vietnamese without accents is treated as English | Pass `--source-language vi` |
+| Translation fails | Check connectivity and retry; the Google-backed translator may rate-limit requests |
+| First Java run is slow | CoreNLP must initialize large NLP models; subsequent processing is normally faster |
+
+## ⚠️ Operational notes
+
+- Translation uses an unofficial Google web-backed provider and can be affected by
+  connectivity, rate limits, or upstream changes.
+- Pyjnius starts one JVM per Python process. Configure MinIE before importing other
+  Pyjnius-based libraries in the same process.
+- Stanford CoreNLP models make the Java fat JAR large and require additional memory
+  during startup.
+- This repository currently has no open-source license. All rights remain with the
+  repository owner unless a license is added.
+
+## 🤝 Contributing
+
+Issues and pull requests are welcome. Before opening a pull request, run both the
+Python and Java verification commands from [Quality & testing](#-quality--testing).
+
+<div align="center">
+
+Built for practical text-to-knowledge workflows with Python, Java, CoreNLP, and MinIE.
+
+</div>
